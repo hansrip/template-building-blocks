@@ -1071,6 +1071,14 @@ let virtualMachineValidations = {
                         };
                     }
 
+                    // KeyVault and VM cannot be in different regions
+                    if (vm.location !== value.location) {
+                        return {
+                            result: false,
+                            message: 'Virtual Machine must be in the same location as the KeyVault used for secrets'
+                        };
+                    }
+
                     return {
                         validations: resources.resourceReferenceValidations
                     };
@@ -1610,6 +1618,7 @@ function transform(settings, buildingBlockSettings) {
             transformedExtensions = transformedExtensions.concat(vmExtensions.transform(diskEncryptionExtension).extensions);
             encryptionSettings = {
                 useExtension: true,
+                extensionName: vmStamp.osType === 'windows' ? 'AzureDiskEncryption' : 'AzureDiskEncryptionForLinux',
                 diskEncryptionKeyVault: resources.resourceId(
                     vmStamp.osDisk.encryptionSettings.diskEncryptionKeyVault.subscriptionId,
                     vmStamp.osDisk.encryptionSettings.diskEncryptionKeyVault.resourceGroupName,
